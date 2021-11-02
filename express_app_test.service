@@ -1,0 +1,21 @@
+[Unit]
+# Custom description, set as you wish
+Description=Node.js sample Express app
+After=network.target
+
+[Service]
+Type=simple
+# Name of the system user running the app
+User=johndoe
+# Port the app is bound to, in this case 3000 (must be greater than 1024)
+# If your app needs more environmental variables, just add more "Environment=" lines, or load them from a file (e.g. a "dotfile") with the "EnvironmentFile" rule
+Environment=PORT=3000
+# Path where the code is
+WorkingDirectory=/home/johndoe/apps/app1/source/
+# If your app's entrypoint isn't "bin/www", change this line
+ExecStart=npm start
+# This tells systemd to restart the app if it crashes
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

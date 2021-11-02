@@ -1,0 +1,54 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: no
+  vars:
+      source_path: ./source
+      target_path: /home/johndoe/apps/app1
+  
+  tasks: 
+  - name: Run the equivalent of "apt-get update" as a separate step
+    apt:
+     update_cache: yes
+  
+  - name: Install system packages
+    apt: name={{ item }} state=present
+    with_items:
+      - git
+      - nodejs
+      - npm
+
+  # copy local files without git  
+  #  - name: Copy source files
+  #    ansible.builtin.copy:
+  #      src: "{{ source_path }}"
+  #      dest: "{{ target_path }}"
+
+  - name: Clone a repo from a 3rd party github server
+    ansible.builtin.git:
+      repo: https://github.com/daedalus1948/ansible_test_public
+      dest: "{{ target_path }}"
+
+  - name: Install nodejs packages based on package.json.
+    community.general.npm:
+      path: /home/johndoe/apps/app1/source
+
+  - name: Copy systemd service file to target system location
+    ansible.builtin.copy:
+      src: ./express_app_test.service
+      dest: /etc/systemd/system/express_app_test.service
+
+  - name: Start systemd service
+    ansible.builtin.systemd:
+      name: express_app_test
+      state: started
+
+  - name: configure ufw - allow port 3000
+    community.general.ufw:
+      rule: allow
+      port: 3000
+      proto: tcp
+
+  - name: enable universal firewall UFW
+    community.general.ufw:
+      state: enabled
