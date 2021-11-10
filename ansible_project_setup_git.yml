@@ -17,6 +17,7 @@
       - git
       - nodejs
       - npm
+      - nginx
 
   # copy local files without git  
   #  - name: Copy source files
@@ -38,16 +39,37 @@
       src: ./express_app_test.service
       dest: /etc/systemd/system/express_app_test.service
 
-  - name: Start systemd service
+
+  - name: Delete default nginx vhost symlink
+    file: path=/etc/nginx/sites-enabled/default state=absent
+
+  - name: Add new nginx conf file
+    ansible.builtin.copy:
+      src: ./node_app_nginx.conf
+      dest: /etc/nginx/sites-available/node_app_nginx.conf
+
+
+  - name: Setup a new symlink with the previously copied configuration
+    file: src=/etc/nginx/sites-available/node_app_nginx.conf
+      dest=/etc/nginx/sites-enabled/node_app_nginx.conf
+      state=link
+
+  - name: Start express_app_test systemd service and verify
     ansible.builtin.systemd:
       name: express_app_test
       enabled: yes
       state: started
 
-  - name: configure ufw - allow port 3000
+  - name: Verify if nginx systemd service re/started
+    ansible.builtin.systemd:
+      name: nginx
+      enabled: yes
+      state: restarted
+
+  - name: configure ufw - allow port 80 for nginx (later use ufw app profiles to allow nginx this way)
     community.general.ufw:
       rule: allow
-      port: 3000
+      port: 80
       proto: tcp
 
   - name: enable universal firewall UFW
