@@ -58,7 +58,7 @@
     ansible.builtin.systemd:
       name: express_app_test
       enabled: yes
-      state: started
+      state: restarted
 
   - name: Verify if nginx systemd service re/started
     ansible.builtin.systemd:
